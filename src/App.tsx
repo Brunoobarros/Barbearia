@@ -548,7 +548,7 @@ export default function App() {
       }
     }
 
-    const message = `Olá, *${apt.clientName}*! Seu agendamento na *${shopName}* foi confirmado com sucesso! 🎉\n\n🎉 *Serviço:* ${serviceName}\n📅 *Data:* ${apt.date.split('-').reverse().join('/')}\n⏰ *Horário:* ${apt.time}\n📍 *Endereço:* Av. Principal, 123 - Centro\n\nEstamos ansiosos pelo seu atendimento! Se precisar alterar ou cancelar, avise-nos com antecedência. 💈`;
+    const message = `Agendamento na *${shopName}* foi confirmado com sucesso! *Serviço:* ${serviceName}\n📅 *Data:* ${apt.date.split('-').reverse().join('/')}\n⏰ *Horário:* ${apt.time}\n📍 \n\nEstamos ansiosos pelo seu atendimento! Se precisar alterar ou cancelar, avise-nos com antecedência. 💈`;
     
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
@@ -779,12 +779,13 @@ export default function App() {
         <div className="max-w-md md:max-w-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Visual Barber Logo Icon */}
-            <div className={`p-1.5 rounded-xl flex items-center justify-center transition-colors border ${
+            <div className={`p-1 rounded-xl flex items-center justify-center transition-colors border overflow-hidden ${
               isLightTheme
                 ? 'bg-amber-50 border-amber-100 text-amber-600'
                 : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
             }`}>
-              <LucideIcon name="Scissors" size={18} />
+              {/* Substitua a URL abaixo pelo link ou caminho da sua imagem */}
+              <img src="/logo.png" alt="Logo Barbearia" className="w-6 h-6 object-cover" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -1104,7 +1105,7 @@ service cloud.firestore {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex p-4 overflow-y-auto bg-black/60 backdrop-blur-sm"
             onClick={() => setIsAdminAuthOpen(false)}
           >
             <motion.div
@@ -1112,7 +1113,7 @@ service cloud.firestore {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full max-w-sm mx-4 rounded-3xl p-6 shadow-2xl border ${
+              className={`w-full max-w-sm m-auto shrink-0 rounded-3xl p-6 shadow-2xl border ${
                 isLightTheme ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
               }`}
             >
@@ -1216,7 +1217,7 @@ service cloud.firestore {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+              className="fixed inset-0 z-50 flex p-4 overflow-y-auto bg-black/60 backdrop-blur-sm"
             onClick={handleDismissWhatsapp}
           >
             <motion.div
@@ -1224,7 +1225,7 @@ service cloud.firestore {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl border transition-all duration-200 ${
+                className={`w-full max-w-sm m-auto shrink-0 rounded-3xl p-6 shadow-2xl border transition-all duration-200 ${
                 isLightTheme ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-white'
               }`}
             >
