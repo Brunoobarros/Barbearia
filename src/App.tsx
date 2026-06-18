@@ -1113,7 +1113,7 @@ service cloud.firestore {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full max-w-sm m-auto shrink-0 rounded-3xl p-6 shadow-2xl border ${
+              className={`w-full max-w-sm mx-auto mt-10 mb-auto sm:m-auto shrink-0 rounded-3xl p-6 shadow-2xl border ${
                 isLightTheme ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
               }`}
             >
@@ -1155,7 +1155,6 @@ service cloud.firestore {
                         ? 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-amber-500'
                         : 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500'
                     }`}
-                    autoFocus
                   />
                 </div>
 
@@ -1225,7 +1224,7 @@ service cloud.firestore {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-                className={`w-full max-w-sm m-auto shrink-0 rounded-3xl p-6 shadow-2xl border transition-all duration-200 ${
+                className={`w-full max-w-sm mx-auto mt-10 mb-auto sm:m-auto shrink-0 rounded-3xl p-6 shadow-2xl border transition-all duration-200 ${
                 isLightTheme ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-white'
               }`}
             >
