@@ -724,7 +724,12 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen ${isLightTheme ? 'light-theme bg-slate-50 text-slate-800' : 'bg-slate-950 text-slate-200'} font-sans selection:bg-amber-500 selection:text-slate-950 pb-20 md:pb-6 transition-colors duration-300`}>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className={`min-h-screen ${isLightTheme ? 'light-theme bg-slate-50 text-slate-800' : 'bg-slate-950 text-slate-200'} font-sans selection:bg-amber-500 selection:text-slate-950 pb-20 md:pb-6 transition-colors duration-300`}
+    >
       
       {/* Dynamic Floating Toast System */}
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4 space-y-2 pointer-events-none">
@@ -1326,6 +1331,6 @@ service cloud.firestore {
         onClose={() => setIsInstallOpen(false)}
         isLightTheme={isLightTheme}
       />
-    </div>
+    </motion.div>
   );
 }

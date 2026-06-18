@@ -15,10 +15,46 @@
         padding: 0;
         background-color: #020617; /* Slate 950 standard */
       }
+      /* Splash Screen Animada */
+      #splash-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #020617;
+        z-index: 99999;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .splash-logo {
+        width: 72px;
+        height: 72px;
+        margin-bottom: 24px;
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      .splash-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(245, 158, 11, 0.15); /* amber-500 opacity */
+        border-top-color: #f59e0b; /* amber-500 */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(0.95); }
+      }
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="splash-screen">
+        <img src="/logo.png" alt="Carregando..." class="splash-logo" onerror="this.style.display='none'" />
+        <div class="splash-spinner"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
