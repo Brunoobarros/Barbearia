@@ -1,0 +1,8 @@
+{
+  "name": "Barbearia Premium",
+  "description": "Sistema de Agendamento Premium para Barbearia com controle de horários e painel administrativo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
