@@ -640,70 +640,61 @@ export default function App() {
       return;
     }
 
+    // 1. Verifica primeiro se o usuário é um Barbeiro (salvo no banco de dados Firestore)
+    const targetUsername = user.includes('@') ? user.split('@')[0].toLowerCase() : user;
+    const barber = barbers.find((b) => b.active && b.username.toLowerCase() === targetUsername);
+
+    if (barber) {
+      if (barber.password === pass) {
+        setIsAdmin(false);
+        setLoggedBarberId(barber.id);
+        setCurrentTab('admin');
+        setIsAdminAuthOpen(false);
+        setAdminUsername('');
+        setAdminPassword('');
+        setAdminError('');
+        showToast('Login Realizado', `Bem-vindo, ${barber.name}!`, 'success');
+        return;
+      } else {
+        setAdminError('Senha incorreta para este barbeiro.');
+        setAdminPassword('');
+        return;
+      }
+    }
+
+    // 2. Se não for barbeiro, tenta autenticar como Administrador Geral via Firebase Auth
     if (isFirebaseConfigured && auth) {
       let loginEmail = user;
       if (!loginEmail.includes('@')) {
-        if (loginEmail === 'admin') {
-          loginEmail = 'admin@barbeiro.com.br';
-        } else {
-          loginEmail = `${loginEmail}@barbeiro.com.br`;
-        }
+        loginEmail = loginEmail === 'admin' ? 'admin@barbeiro.com.br' : `${loginEmail}@barbeiro.com.br`;
       }
 
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, loginEmail, pass);
-        const fbUser = userCredential.user;
-
-        // Check if user is Admin or a Barber
-        if (loginEmail.toLowerCase() === 'admin@barbeiro.com.br') {
-          setIsAdmin(true);
-          setLoggedBarberId(null);
-          localStorage.removeItem('barber_logged_id');
-          setCurrentTab('admin');
-          setIsAdminAuthOpen(false);
-          setAdminUsername('');
-          setAdminPassword('');
-          setAdminError('');
-          showToast('Login Realizado', 'Bem-vindo, Administrador! (Firebase Auth)', 'success');
-        } else {
-          // Check if matches username in barbers
-          const targetUsername = user.split('@')[0].toLowerCase();
-          const barber = barbers.find((b) => b.active && b.username.toLowerCase() === targetUsername);
-          if (barber) {
-            setIsAdmin(false);
-            setLoggedBarberId(barber.id);
-            setCurrentTab('admin');
-            setIsAdminAuthOpen(false);
-            setAdminUsername('');
-            setAdminPassword('');
-            setAdminError('');
-            showToast('Login Realizado', `Bem-vindo, ${barber.name}! (Firebase Auth)`, 'success');
-          } else {
-            setIsAdmin(false);
-            setLoggedBarberId('firebase-logged-barber');
-            setCurrentTab('admin');
-            setIsAdminAuthOpen(false);
-            setAdminUsername('');
-            setAdminPassword('');
-            setAdminError('');
-            showToast('Login Realizado', `Bem-vindo! Usuário autenticado pelo Firebase.`, 'success');
-          }
-        }
+        await signInWithEmailAndPassword(auth, loginEmail, pass);
+        setIsAdmin(true);
+        setLoggedBarberId(null);
+        localStorage.removeItem('barber_logged_id');
+        setCurrentTab('admin');
+        setIsAdminAuthOpen(false);
+        setAdminUsername('');
+        setAdminPassword('');
+        setAdminError('');
+        showToast('Login Realizado', 'Bem-vindo, Administrador!', 'success');
       } catch (err: any) {
         console.error('Firebase Auth error:', err);
         let errorMsg = 'Erro ao realizar login. Verifique as credenciais.';
         if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-          errorMsg = 'Usuário ou senha incorretos no Firebase.';
+          errorMsg = 'Usuário ou senha incorretos.';
         } else if (err.code === 'auth/network-request-failed') {
-          errorMsg = 'Falha de rede. Verifique sua conexão com o Firebase.';
+          errorMsg = 'Falha de rede. Verifique sua conexão.';
+        } else if (err.code === 'auth/operation-not-allowed') {
+          errorMsg = 'Login com Email/Senha não habilitado no Firebase.';
         }
         setAdminError(errorMsg);
         setAdminPassword('');
       }
     } else {
-      // Local check fallback has been disabled to prevent security vulnerabilities.
-      setAdminError('O login administrativo requer a integração com o Firebase configurada. Por favor, configure as chaves de ambiente no Vercel (ou arquivo .env).');
-      showToast('Acesso Restrito', 'Configure o Firebase para habilitar o login remoto seguro.', 'reminder');
+      setAdminError('Usuário não encontrado. O Firebase não está configurado.');
     }
   };
 
