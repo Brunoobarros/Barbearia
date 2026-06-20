@@ -105,16 +105,8 @@ export default function AppointmentList({
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'upcoming'>('all');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // Filter appointments that either match the logged-in barber's ID or do not belong to another active barber
-  const barberAppointments = appointments.filter((apt) => {
-    if (loggedBarberId) {
-      const belongsToOtherActiveBarber = barbers.some(
-        (b) => b.active && b.id !== loggedBarberId && apt.barberId === b.id
-      );
-      return apt.barberId === loggedBarberId || !belongsToOtherActiveBarber;
-    }
-    return true;
-  });
+  // All barbers can view all appointments. No filtering by loggedBarberId.
+  const barberAppointments = appointments;
 
   // Filter list
   const filteredAppointments = barberAppointments.filter((apt) => {
