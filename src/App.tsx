@@ -26,7 +26,19 @@ export default function App() {
 
   // Reset scroll position to top when changing tabs
   useEffect(() => {
+    // Scroll immediately
     window.scrollTo(0, 0);
+    if (document.body) document.body.scrollTop = 0;
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+
+    // Scroll again after exit transition completes (150ms) to ensure viewport starts at the top
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+      if (document.body) document.body.scrollTop = 0;
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+    }, 180);
+
+    return () => clearTimeout(timer);
   }, [currentTab]);
 
   // WhatsApp reminder / confirmation modal states
