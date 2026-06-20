@@ -110,16 +110,8 @@ export default function AppointmentForm({
           const slotRect = slotEl.getBoundingClientRect();
           const relativeTop = slotRect.top - containerRect.top + containerEl.scrollTop;
           
-          const [hour] = selectedTime.split(':').map(Number);
-          let targetScrollTop = relativeTop;
-          
-          if (hour >= 12) {
-            // Center the slot inside the container
-            targetScrollTop = relativeTop - (containerRect.height / 2) + (slotRect.height / 2);
-          } else {
-            // Align to nearest top
-            targetScrollTop = Math.max(0, relativeTop - 10);
-          }
+          // Position the selected slot at the top of the container (with 8px offset for padding)
+          const targetScrollTop = Math.max(0, relativeTop - 8);
           
           containerEl.scrollTo({
             top: targetScrollTop,
