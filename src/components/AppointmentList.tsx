@@ -162,7 +162,12 @@ export default function AppointmentList({
 
     if (cleanPhone) {
       const waUrl = `https://wa.me/${cleanPhone}/?text=${encodeURIComponent(message)}`;
-      window.open(waUrl, '_blank', 'noopener,noreferrer');
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.location.href = waUrl;
+      } else {
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      }
       showToast(
         'WhatsApp Enviado',
         `Abrindo o WhatsApp para lembrar ${apt.clientName} do horário às ${apt.time}.`,

@@ -620,9 +620,14 @@ export default function App() {
     const message = `Agendamento na *${shopName}* foi confirmado com sucesso! \n*Serviço:* ${serviceName}\n📅 *Data:* ${apt.date.split('-').reverse().join('/')}\n⏰ *Horário:* ${apt.time}\n📍 \n`;
     
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
     
-    window.open(whatsappUrl, '_blank');
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = whatsappUrl;
+    } else {
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    }
     setPendingWhatsappApt(null);
     setCurrentTab('agenda'); // Navigate to agenda automatically after
   };
