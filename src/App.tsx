@@ -24,6 +24,11 @@ export default function App() {
   // Navigation State
   const [currentTab, setCurrentTab] = useState<'agendar' | 'agenda' | 'admin' | 'notificacoes'>('agendar');
 
+  // Reset scroll position to top when changing tabs
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentTab]);
+
   // WhatsApp reminder / confirmation modal states
   const [pendingWhatsappApt, setPendingWhatsappApt] = useState<Appointment | null>(null);
   const [tempWhatsappPhone, setTempWhatsappPhone] = useState<string>('');
