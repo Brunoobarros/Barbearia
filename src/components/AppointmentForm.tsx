@@ -131,14 +131,9 @@ export default function AppointmentForm({
     }
   }, [selectedTime, currentStep, activeDate]);
 
-  // Rolar para o topo do formulário ao mudar de passo (Passos 1, 2 e 3)
+  // Rolar para o topo ao mudar de passo (Passos 1, 2 e 3)
   useEffect(() => {
-    const headingEl = document.getElementById('appointment-heading');
-    if (headingEl) {
-      headingEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
   // Handle phone mask (e.g. (XX) XXXXX-XXXX)
