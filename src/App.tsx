@@ -854,7 +854,7 @@ export default function App() {
                 : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
             }`}>
               {/* Substitua a URL abaixo pelo link ou caminho da sua imagem */}
-              <img src="/logo.png" alt="Logo Barbearia" className="w-6 h-6 object-cover" />
+              <img src="/logo.png" alt="Logo Barbearia" className="w-6 h-6 object-cover rounded-lg scale-[1.08]" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
