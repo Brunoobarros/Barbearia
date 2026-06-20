@@ -955,7 +955,7 @@ export default function App() {
 
       {/* Primary Dynamic App Body Context Router */}
       <main className="max-w-md md:max-w-xl mx-auto px-4 pt-5 pb-28 md:pb-12">
-        {isFirebaseConfigured && firebasePermissionError && (
+        {isFirebaseConfigured && isAdmin && firebasePermissionError && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-5 mb-5 shadow-lg text-amber-200">
             <div className="flex justify-between items-start gap-2.5">
               <div className="flex gap-2.5">
