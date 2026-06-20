@@ -105,8 +105,19 @@ export default function AppointmentList({
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'upcoming'>('all');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  // Filter appointments that either match the logged-in barber's ID or do not belong to another active barber
+  const barberAppointments = appointments.filter((apt) => {
+    if (loggedBarberId) {
+      const belongsToOtherActiveBarber = barbers.some(
+        (b) => b.active && b.id !== loggedBarberId && apt.barberId === b.id
+      );
+      return apt.barberId === loggedBarberId || !belongsToOtherActiveBarber;
+    }
+    return true;
+  });
+
   // Filter list
-  const filteredAppointments = appointments.filter((apt) => {
+  const filteredAppointments = barberAppointments.filter((apt) => {
     // 1. Text Search
     const matchesSearch =
       apt.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -120,13 +131,7 @@ export default function AppointmentList({
       matchesDate = apt.date >= TODAY_STR;
     }
 
-    // 3. Barber Specific Filter
-    let matchesBarber = true;
-    if (loggedBarberId) {
-      matchesBarber = apt.barberId === loggedBarberId;
-    }
-
-    return matchesSearch && matchesDate && matchesBarber && apt.status !== 'canceled' && apt.status !== 'completed';
+    return matchesSearch && matchesDate && apt.status !== 'canceled' && apt.status !== 'completed';
   });
 
   // Sort by date and then by time
@@ -216,7 +221,7 @@ export default function AppointmentList({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Todos ({appointments.filter((a) => a.status !== 'canceled' && a.status !== 'completed').length})
+            Todos ({barberAppointments.filter((a) => a.status !== 'canceled' && a.status !== 'completed').length})
           </button>
           <button
             onClick={() => setDateFilter('today')}
@@ -226,7 +231,7 @@ export default function AppointmentList({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Hoje ({appointments.filter((a) => a.date === TODAY_STR && a.status !== 'canceled' && a.status !== 'completed').length})
+            Hoje ({barberAppointments.filter((a) => a.date === TODAY_STR && a.status !== 'canceled' && a.status !== 'completed').length})
           </button>
           <button
             onClick={() => setDateFilter('upcoming')}
@@ -236,7 +241,7 @@ export default function AppointmentList({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Futuros ({appointments.filter((a) => a.date >= TODAY_STR && a.status !== 'canceled' && a.status !== 'completed').length})
+            Futuros ({barberAppointments.filter((a) => a.date >= TODAY_STR && a.status !== 'canceled' && a.status !== 'completed').length})
           </button>
         </div>
       </div>

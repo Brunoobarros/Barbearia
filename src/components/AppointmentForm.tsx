@@ -46,6 +46,8 @@ export default function AppointmentForm({
   // Steps: 1 = Service, 2 = Date & Time, 3 = Confirmation Info
   const [currentStep, setCurrentStep] = useState<number>(1);
 
+  const activeBarbers = barbers.filter((b) => b.active);
+
   // Generate date options starting from the actual current date (today) to ensure we always show 7 days starting from today!
   const dateOptions = React.useMemo(() => {
     return getNextSevenDays((() => {
@@ -306,6 +308,40 @@ export default function AppointmentForm({
             transition={{ duration: 0.15 }}
             className="space-y-4"
           >
+            {/* Barber Selection dropdown */}
+            {activeBarbers.length > 0 && (
+              <div>
+                <label htmlFor="barber-select" className={`block text-xs font-semibold mb-2 ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
+                  Profissional <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <LucideIcon name="User" size={15} />
+                  </div>
+                  <select
+                    id="barber-select"
+                    value={selectedBarberId}
+                    onChange={(e) => setSelectedBarberId(e.target.value)}
+                    className={`block w-full pl-10 pr-10 py-3 border focus:border-amber-500 rounded-xl focus:outline-none focus:ring-1 focus:ring-amber-500 text-sm transition-all appearance-none cursor-pointer ${
+                      isLightTheme
+                        ? 'bg-white border-slate-200 text-slate-900 shadow-sm'
+                        : 'bg-slate-950 border-slate-800 text-white'
+                    }`}
+                  >
+                    <option value="any">Qualquer profissional (Distribuição automática)</option>
+                    {activeBarbers.map((barber) => (
+                      <option key={barber.id} value={barber.id}>
+                        {barber.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-500">
+                    <LucideIcon name="ChevronDown" size={14} />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <div className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-3 font-bold">
                 Passo 2: Escolha a Data
@@ -443,7 +479,9 @@ export default function AppointmentForm({
                 <div className={`flex justify-between pb-1.5 border-b text-slate-400 ${isLightTheme ? 'border-slate-200' : 'border-slate-800/60'}`}>
                   <span>Profissional:</span>
                   <span className={`font-bold ${isLightTheme ? 'text-slate-900' : 'text-white'}`}>
-                    {barbers.find(b => b.id === (slots.find(s => s.time === selectedTime)?.suggestedBarberId))?.name || 'Distribuição Automática'}
+                    {selectedBarberId === 'any'
+                      ? `Qualquer profissional (${barbers.find(b => b.id === (slots.find(s => s.time === selectedTime)?.suggestedBarberId))?.name || 'Sem profissional'})`
+                      : (barbers.find(b => b.id === selectedBarberId)?.name || 'Sem profissional')}
                   </span>
                 </div>
                 <div className={`flex justify-between pb-1.5 border-b text-slate-400 ${isLightTheme ? 'border-slate-200' : 'border-slate-800/60'}`}>
