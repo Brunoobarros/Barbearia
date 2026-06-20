@@ -154,6 +154,19 @@ export default function App() {
   });
 
   const [firebasePermissionError, setFirebasePermissionError] = useState<boolean>(false);
+  const [isOnline, setIsOnline] = useState<boolean>(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  // Monitor network connection status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const [loggedBarberId, setLoggedBarberId] = useState<string | null>(() => {
     const saved = localStorage.getItem('barber_logged_id');
@@ -897,6 +910,29 @@ export default function App() {
                   >
                     <LucideIcon name="Edit" size={12} />
                   </button>
+                )}
+
+                {/* Connection Status Indicator */}
+                {!isFirebaseConfigured ? (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800 text-slate-405 text-slate-400 text-[8px] font-mono uppercase font-bold tracking-wider border border-slate-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    Local (Offline)
+                  </span>
+                ) : firebasePermissionError ? (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 text-[8px] font-mono uppercase font-bold tracking-wider border border-red-500/20 animate-pulse" title="As regras do seu Firestore estão incorretas ou bloqueando o acesso.">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    Erro de Permissão
+                  </span>
+                ) : !isOnline ? (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[8px] font-mono uppercase font-bold tracking-wider border border-amber-500/20 animate-pulse" title="Você está sem conexão com a internet. O app está usando backup local.">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    Sem Internet
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-450 text-[8px] font-mono uppercase font-bold tracking-wider border border-emerald-500/15" title="Sincronizado em tempo real com o banco de dados do Firebase.">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Nuvem Ativa
+                  </span>
                 )}
               </div>
               {isAdmin && (
