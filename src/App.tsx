@@ -914,25 +914,13 @@ export default function App() {
 
                 {/* Connection Status Indicator */}
                 {!isFirebaseConfigured ? (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800 text-slate-405 text-slate-400 text-[8px] font-mono uppercase font-bold tracking-wider border border-slate-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-                    Local (Offline)
-                  </span>
+                  <span className="w-2 h-2 rounded-full bg-slate-500 shrink-0" title="Local (Sem conexão com Firebase)" />
                 ) : firebasePermissionError ? (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 text-[8px] font-mono uppercase font-bold tracking-wider border border-red-500/20 animate-pulse" title="As regras do seu Firestore estão incorretas ou bloqueando o acesso.">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                    Erro de Permissão
-                  </span>
+                  <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse" title="Erro de Permissão no banco de dados" />
                 ) : !isOnline ? (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[8px] font-mono uppercase font-bold tracking-wider border border-amber-500/20 animate-pulse" title="Você está sem conexão com a internet. O app está usando backup local.">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    Sem Internet
-                  </span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" title="Sem Internet (Usando backup local)" />
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-450 text-[8px] font-mono uppercase font-bold tracking-wider border border-emerald-500/15" title="Sincronizado em tempo real com o banco de dados do Firebase.">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    Nuvem Ativa
-                  </span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Nuvem Ativa (Sincronizado)" />
                 )}
               </div>
               {isAdmin && (
