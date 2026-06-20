@@ -617,7 +617,7 @@ export default function App() {
       }
     }
 
-    const message = `Agendamento na *${shopName}* foi confirmado com sucesso! *Serviço:* ${serviceName}\n📅 *Data:* ${apt.date.split('-').reverse().join('/')}\n⏰ *Horário:* ${apt.time}\n📍 \n\nEstamos ansiosos pelo seu atendimento! Se precisar alterar ou cancelar, avise-nos com antecedência. 💈`;
+    const message = `Agendamento na *${shopName}* foi confirmado com sucesso! \n*Serviço:* ${serviceName}\n📅 *Data:* ${apt.date.split('-').reverse().join('/')}\n⏰ *Horário:* ${apt.time}\n📍 \n`;
     
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
