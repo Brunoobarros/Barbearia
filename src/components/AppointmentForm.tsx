@@ -16,7 +16,7 @@ interface AppointmentFormProps {
     serviceId: string;
     notes: string;
     barberId?: string;
-  }) => void;
+  }) => Promise<boolean>;
   activeDate: string;
   setActiveDate: (date: string) => void;
   showToast: (title: string, message: string, type: 'success' | 'alert' | 'info' | 'reminder') => void;
@@ -152,7 +152,7 @@ export default function AppointmentForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName.trim() || !selectedTime) {
       showToast('Erro no Formulário', 'Por favor, preencha o nome do cliente.', 'alert');
@@ -174,7 +174,7 @@ export default function AppointmentForm({
       ? (chosenSlot?.suggestedBarberId || barbers[0]?.id || 'b1')
       : selectedBarberId;
 
-    onAddAppointment({
+    const success = await onAddAppointment({
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
       date: activeDate,
@@ -184,12 +184,14 @@ export default function AppointmentForm({
       barberId: assignedBarberId,
     });
 
-    // Reset Form
-    setClientName('');
-    setClientPhone('');
-    setNotes('');
-    setSelectedTime('');
-    setCurrentStep(1);
+    if (success) {
+      // Reset Form
+      setClientName('');
+      setClientPhone('');
+      setNotes('');
+      setSelectedTime('');
+      setCurrentStep(1);
+    }
   };
 
 

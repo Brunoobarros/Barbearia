@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BarberService, WorkingConfig, Appointment, NotificationItem, Barber } from './types';
 import { DEFAULT_SERVICES, DEFAULT_CONFIG, INITIAL_APPOINTMENTS, DEFAULT_BARBERS } from './data';
 import { auth, db, isFirebaseConfigured } from './firebase';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, query, where, getDocs } from 'firebase/firestore';
 import AppointmentForm from './components/AppointmentForm';
 import AppointmentList from './components/AppointmentList';
 import AdminPanel from './components/AdminPanel';
@@ -11,7 +11,7 @@ import NotificationCenter from './components/NotificationCenter';
 import LucideIcon from './components/LucideIcon';
 import InstallGuideModal from './components/InstallGuideModal';
 import { motion, AnimatePresence } from 'motion/react';
-import { timeToMinutes } from './utils';
+import { timeToMinutes, hashPassword } from './utils';
 
 interface Toast {
   id: string;
@@ -126,6 +126,7 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState<string>('');
   const [adminError, setAdminError] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    if (isFirebaseConfigured) return false;
     const saved = localStorage.getItem('barber_admin_auth');
     return saved ? JSON.parse(saved) : false;
   });
@@ -209,6 +210,20 @@ export default function App() {
       }
     }
   }, []);
+
+  // --- FIREBASE AUTH REAL-TIME SESSION SYNC ---
+  useEffect(() => {
+    if (!isFirebaseConfigured || !auth) return;
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAdmin(true);
+        setLoggedBarberId(null);
+      } else {
+        setIsAdmin(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [isFirebaseConfigured]);
 
   // --- FIRESTORE INTEGRATION REAL-TIME SYNC ---
   useEffect(() => {
@@ -452,7 +467,7 @@ export default function App() {
   };
 
   // --- CONTROLLER HANDLERS ---
-  const handleAddAppointment = (aptData: {
+  const handleAddAppointment = async (aptData: {
     clientName: string;
     clientPhone: string;
     date: string;
@@ -460,30 +475,64 @@ export default function App() {
     serviceId: string;
     notes: string;
     barberId?: string;
-  }) => {
-    // Double-check slot in real-time per professional to prevent double-booking
-    const exists = appointments.some((a) => {
-      if (a.date !== aptData.date || a.status === 'canceled') return false;
-      
-      // If we are assigning to specific barbers
-      if (aptData.barberId && a.barberId === aptData.barberId) {
-        const startExisting = timeToMinutes(a.time);
-        const serviceExisting = services.find(s => s.id === a.serviceId);
-        const durationExisting = serviceExisting ? serviceExisting.duration : 30;
-        
-        const startTarget = timeToMinutes(aptData.time);
-        const serviceTarget = services.find(s => s.id === aptData.serviceId);
-        const durationTarget = serviceTarget ? serviceTarget.duration : 30;
-        
-        // Overlap mathematical check: range A overlaps range B
-        return (startTarget < startExisting + durationExisting) && (startTarget + durationTarget > startExisting);
+  }): Promise<boolean> => {
+    // 1. Checagem em tempo real no Firestore se estiver online
+    let exists = false;
+    if (isFirebaseConfigured && db) {
+      try {
+        const q = query(
+          collection(db, 'appointments'),
+          where('date', '==', aptData.date),
+          where('status', '!=', 'canceled')
+        );
+        const snapshot = await getDocs(q);
+        const latestAppointments: Appointment[] = [];
+        snapshot.forEach((doc) => {
+          latestAppointments.push({ id: doc.id, ...doc.data() } as Appointment);
+        });
+
+        exists = latestAppointments.some((a) => {
+          if (aptData.barberId && a.barberId === aptData.barberId) {
+            const startExisting = timeToMinutes(a.time);
+            const serviceExisting = services.find(s => s.id === a.serviceId);
+            const durationExisting = serviceExisting ? serviceExisting.duration : 30;
+            
+            const startTarget = timeToMinutes(aptData.time);
+            const serviceTarget = services.find(s => s.id === aptData.serviceId);
+            const durationTarget = serviceTarget ? serviceTarget.duration : 30;
+            
+            return (startTarget < startExisting + durationExisting) && (startTarget + durationTarget > startExisting);
+          }
+          return false;
+        });
+      } catch (err) {
+        console.error("Erro ao verificar agendamentos no Firestore:", err);
       }
-      return false;
-    });
+    }
+
+    // Fallback: se o check online falhou ou não rodou, verifica no estado local em memória
+    if (!exists) {
+      exists = appointments.some((a) => {
+        if (a.date !== aptData.date || a.status === 'canceled') return false;
+        
+        if (aptData.barberId && a.barberId === aptData.barberId) {
+          const startExisting = timeToMinutes(a.time);
+          const serviceExisting = services.find(s => s.id === a.serviceId);
+          const durationExisting = serviceExisting ? serviceExisting.duration : 30;
+          
+          const startTarget = timeToMinutes(aptData.time);
+          const serviceTarget = services.find(s => s.id === aptData.serviceId);
+          const durationTarget = serviceTarget ? serviceTarget.duration : 30;
+          
+          return (startTarget < startExisting + durationExisting) && (startTarget + durationTarget > startExisting);
+        }
+        return false;
+      });
+    }
 
     if (exists) {
       showToast('Horário Indisponível', 'Este horário para o profissional escolhido acabou de ser preenchido por outro cliente. Por favor, escolha outro horário.', 'alert');
-      return;
+      return false;
     }
 
     const newApt: Appointment = {
@@ -495,11 +544,13 @@ export default function App() {
 
     setAppointments((prev) => [newApt, ...prev]);
     if (isFirebaseConfigured && db) {
-      setDoc(doc(db, 'appointments', newApt.id), newApt)
-        .catch((err) => {
-          console.error("Firestore write appointment error:", err);
-          if (err.code === 'permission-denied') setFirebasePermissionError(true);
-        });
+      try {
+        await setDoc(doc(db, 'appointments', newApt.id), newApt);
+      } catch (err: any) {
+        console.error("Firestore write appointment error:", err);
+        if (err.code === 'permission-denied') setFirebasePermissionError(true);
+        return false;
+      }
     }
 
     // Create Notification item
@@ -520,6 +571,7 @@ export default function App() {
     // Set states to trigger the WhatsApp Confirmation popup instead of immediate tab change
     setPendingWhatsappApt(newApt);
     setTempWhatsappPhone(aptData.clientPhone || '');
+    return true;
   };
 
   const handleSendWhatsapp = (apt: Appointment) => {
@@ -645,7 +697,19 @@ export default function App() {
     const barber = barbers.find((b) => b.active && b.username.toLowerCase() === targetUsername);
 
     if (barber) {
-      if (barber.password === pass) {
+      const hashed = await hashPassword(pass);
+      const isPlaintextMatch = barber.password === pass;
+      const isHashedMatch = barber.password === hashed;
+
+      if (isHashedMatch || isPlaintextMatch) {
+        // Migração automática de texto claro para hash SHA-256
+        if (isPlaintextMatch) {
+          const updatedBarbersList = barbers.map((b) =>
+            b.id === barber.id ? { ...b, password: hashed } : b
+          );
+          handleUpdateBarbers(updatedBarbersList);
+        }
+
         setIsAdmin(false);
         setLoggedBarberId(barber.id);
         setCurrentTab('admin');
