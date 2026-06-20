@@ -103,15 +103,28 @@ export default function AppointmentForm({
   useEffect(() => {
     if (currentStep === 2 && selectedTime) {
       const timer = setTimeout(() => {
+        const containerEl = document.getElementById('time-slots-container');
         const slotEl = document.getElementById(`time-slot-${selectedTime}`);
-        if (slotEl) {
+        if (containerEl && slotEl) {
+          const containerRect = containerEl.getBoundingClientRect();
+          const slotRect = slotEl.getBoundingClientRect();
+          const relativeTop = slotRect.top - containerRect.top + containerEl.scrollTop;
+          
           const [hour] = selectedTime.split(':').map(Number);
-          // If selected time is 12:00 or later, align with block: 'center' to show the end of the times list nicely
+          let targetScrollTop = relativeTop;
+          
           if (hour >= 12) {
-            slotEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Center the slot inside the container
+            targetScrollTop = relativeTop - (containerRect.height / 2) + (slotRect.height / 2);
           } else {
-            slotEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Align to nearest top
+            targetScrollTop = Math.max(0, relativeTop - 10);
           }
+          
+          containerEl.scrollTo({
+            top: targetScrollTop,
+            behavior: 'smooth'
+          });
         }
       }, 150);
       return () => clearTimeout(timer);
