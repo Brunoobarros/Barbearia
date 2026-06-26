@@ -23,6 +23,7 @@ export default function BarbersTab({
   const [newBarberUsername, setNewBarberUsername] = useState('');
   const [newBarberPassword, setNewBarberPassword] = useState('');
   const [newBarberColor, setNewBarberColor] = useState<'amber' | 'emerald' | 'indigo'>('amber');
+  const [newBarberPhone, setNewBarberPhone] = useState('');
 
   // --- BARBER EDIT STATE ---
   const [editingBarberId, setEditingBarberId] = useState<string | null>(null);
@@ -30,6 +31,27 @@ export default function BarbersTab({
   const [editBarberUsername, setEditBarberUsername] = useState('');
   const [editBarberPassword, setEditBarberPassword] = useState('');
   const [editBarberColor, setEditBarberColor] = useState<'amber' | 'emerald' | 'indigo'>('amber');
+  const [editBarberPhone, setEditBarberPhone] = useState('');
+
+  const handlePhoneInputChange = (value: string, isEdit: boolean) => {
+    let clean = value.replace(/\D/g, '');
+    if (clean.length > 11) clean = clean.slice(0, 11);
+    
+    let formatted = clean;
+    if (clean.length > 6) {
+      formatted = `(${clean.slice(0, 2)}) ${clean.slice(2, 7)}-${clean.slice(7)}`;
+    } else if (clean.length > 2) {
+      formatted = `(${clean.slice(0, 2)}) ${clean.slice(2)}`;
+    } else if (clean.length > 0) {
+      formatted = `(${clean}`;
+    }
+    
+    if (isEdit) {
+      setEditBarberPhone(formatted);
+    } else {
+      setNewBarberPhone(formatted);
+    }
+  };
 
   // --- ADD NEW BARBER FLOW ---
   const handleAddBarber = async (e: React.FormEvent) => {
@@ -55,12 +77,14 @@ export default function BarbersTab({
       password: hashedPassword,
       active: true,
       color: newBarberColor,
+      phone: newBarberPhone.trim(),
     };
 
     onUpdateBarbers([...barbers, newBarber]);
     setNewBarberName('');
     setNewBarberUsername('');
     setNewBarberPassword('');
+    setNewBarberPhone('');
     setShowAddBarberForm(false);
     showToast('Barbeiro Criado!', `Acesso de "${newBarber.name}" criado com sucesso.`, 'success');
   };
@@ -89,6 +113,7 @@ export default function BarbersTab({
     setEditBarberUsername(barber.username);
     setEditBarberPassword(''); // Deixa em branco por segurança (não exibe o hash salvo)
     setEditBarberColor((barber.color || 'amber') as 'amber' | 'emerald' | 'indigo');
+    setEditBarberPhone(barber.phone || '');
   };
 
   const handleSaveEditBarber = async (e: React.FormEvent, id: string) => {
@@ -120,6 +145,7 @@ export default function BarbersTab({
           username: editBarberUsername.trim().toLowerCase(),
           password: targetPassword,
           color: editBarberColor,
+          phone: editBarberPhone.trim(),
         };
       }
       return b;
@@ -212,6 +238,23 @@ export default function BarbersTab({
               />
             </div>
 
+            <div>
+              <label className={`block text-[11px] font-semibold mb-1.5 ${
+                isLightTheme ? 'text-slate-500' : 'text-slate-400'
+              }`}>WhatsApp / Celular (Opcional)</label>
+              <input
+                type="text"
+                placeholder="Ex: (11) 99999-9999"
+                value={newBarberPhone}
+                onChange={(e) => handlePhoneInputChange(e.target.value, false)}
+                className={`w-full text-xs px-3.5 py-2.5 border rounded-xl focus:outline-none focus:ring-1 focus:ring-amber-500 ${
+                  isLightTheme ? 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white' : 'bg-slate-950 border-slate-800 text-white'
+                }`}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={`block text-[11px] font-semibold mb-1.5 ${
                 isLightTheme ? 'text-slate-500' : 'text-slate-400'
@@ -327,6 +370,23 @@ export default function BarbersTab({
                   <div>
                     <label className={`block text-[11px] font-semibold mb-1.5 ${
                       isLightTheme ? 'text-slate-500' : 'text-slate-400'
+                    }`}>WhatsApp / Celular (Opcional)</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: (11) 99999-9999"
+                      value={editBarberPhone}
+                      onChange={(e) => handlePhoneInputChange(e.target.value, true)}
+                      className={`w-full text-xs px-3.5 py-2.5 border rounded-xl focus:outline-none focus:ring-1 focus:ring-amber-500 ${
+                        isLightTheme ? 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white' : 'bg-slate-950 border-slate-800 text-white'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-[11px] font-semibold mb-1.5 ${
+                      isLightTheme ? 'text-slate-500' : 'text-slate-400'
                     }`}>Cor de Identificação</label>
                     <div className="flex gap-2">
                       {['amber', 'emerald', 'indigo'].map((color) => (
@@ -409,6 +469,14 @@ export default function BarbersTab({
                     <LucideIcon name="Briefcase" size={11} className="text-slate-500" />
                     Usuário: <span className="font-mono font-bold text-amber-500">{barber.username}</span>
                   </p>
+                  {barber.phone && (
+                    <p className={`text-[11px] mt-0.5 flex items-center gap-1 ${
+                      isLightTheme ? 'text-slate-500' : 'text-slate-400'
+                    }`}>
+                      <LucideIcon name="Phone" size={11} className="text-slate-500" />
+                      WhatsApp: <span className="font-mono text-emerald-500 font-semibold">{barber.phone}</span>
+                    </p>
+                  )}
                   <p className={`text-[11px] mt-0.5 flex items-center gap-1 ${
                     isLightTheme ? 'text-slate-400' : 'text-slate-500'
                   }`}>

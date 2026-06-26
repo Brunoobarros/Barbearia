@@ -600,7 +600,15 @@ export default function App() {
     
     // Set states to trigger the WhatsApp Confirmation popup instead of immediate tab change
     setPendingWhatsappApt(newApt);
-    setTempWhatsappPhone(aptData.clientPhone || '');
+    
+    let defaultPhone = aptData.clientPhone || '';
+    if (!loggedBarberId) {
+      const assignedBarber = barbers.find(b => b.id === aptData.barberId);
+      if (assignedBarber?.phone) {
+        defaultPhone = assignedBarber.phone;
+      }
+    }
+    setTempWhatsappPhone(defaultPhone);
     return true;
   };
 
@@ -630,7 +638,20 @@ export default function App() {
       }
     }
 
-    const message = `Agendamento na *${shopName}* foi confirmado com sucesso! \n*Serviço:* ${serviceName}\n📅 *Data:* ${apt.date.split('-').reverse().join('/')}\n⏰ *Horário:* ${apt.time}\n📍 \n`;
+    // Check if sending to the barber or to the client.
+    const assignedBarber = barbers.find(b => b.id === apt.barberId);
+    const assignedBarberPhoneClean = assignedBarber?.phone ? assignedBarber.phone.replace(/\D/g, '') : '';
+    const cleanPhoneNoCountry = cleanPhone.startsWith('55') ? cleanPhone.slice(2) : cleanPhone;
+    const barberPhoneNoCountry = assignedBarberPhoneClean.startsWith('55') ? assignedBarberPhoneClean.slice(2) : assignedBarberPhoneClean;
+    
+    const isSendingToBarber = !loggedBarberId && assignedBarberPhoneClean && (cleanPhoneNoCountry === barberPhoneNoCountry);
+
+    let message = '';
+    if (isSendingToBarber) {
+      message = `Olá! Realizei um agendamento na *${shopName}*!\n\n*Serviço:* ${serviceName}\n📅 *Data:* ${apt.date.split('-').reverse().join('/')}\n⏰ *Horário:* ${apt.time}\n👤 *Cliente:* ${apt.clientName}\n📞 *WhatsApp:* ${apt.clientPhone}`;
+    } else {
+      message = `Agendamento na *${shopName}* foi confirmado com sucesso! \n*Serviço:* ${serviceName}\n📅 *Data:* ${apt.date.split('-').reverse().join('/')}\n⏰ *Horário:* ${apt.time}`;
+    }
     
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
@@ -1351,7 +1372,11 @@ service cloud.firestore {
                   Enviar Confirmação?
                 </h3>
                 <p className={`text-xs mt-1.5 leading-relaxed ${isLightTheme ? 'text-slate-500' : 'text-slate-400'}`}>
-                  Deseja enviar a confirmação do horário para o WhatsApp de <span className="font-extrabold text-amber-500">{pendingWhatsappApt.clientName}</span>?
+                  {loggedBarberId ? (
+                    <>Deseja enviar a confirmação do horário para o WhatsApp de <span className="font-extrabold text-amber-500">{pendingWhatsappApt.clientName}</span>?</>
+                  ) : (
+                    <>Deseja enviar o seu agendamento para o WhatsApp do profissional <span className="font-extrabold text-amber-500">{barbers.find(b => b.id === pendingWhatsappApt.barberId)?.name || 'Barbeiro'}</span>?</>
+                  )}
                 </p>
               </div>
 
@@ -1377,7 +1402,7 @@ service cloud.firestore {
                 {/* Phone verification input */}
                 <div>
                   <label htmlFor="modal-whatsapp-phone" className={`block text-xs font-semibold mb-1.5 ${isLightTheme ? 'text-slate-600' : 'text-slate-300'}`}>
-                    Confirmar WhatsApp ou Celular:
+                    {loggedBarberId ? "Confirmar WhatsApp do Cliente:" : "Confirmar WhatsApp do Barbeiro:"}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-505">

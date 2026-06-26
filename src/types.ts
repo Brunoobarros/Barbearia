@@ -32,6 +32,7 @@ export interface Barber {
   password?: string; // login password/pin for barber
   active: boolean;
   color?: string; // Tailwind color accent class
+  phone?: string; // Barber's phone number for receiving appointment notifications
 }
 
 export interface NotificationItem {
