@@ -1400,37 +1400,39 @@ service cloud.firestore {
 
               <div className="space-y-4">
                 {/* Phone verification input */}
-                <div>
-                  <label htmlFor="modal-whatsapp-phone" className={`block text-xs font-semibold mb-1.5 ${isLightTheme ? 'text-slate-600' : 'text-slate-300'}`}>
-                    {loggedBarberId ? "Confirmar WhatsApp do Cliente:" : "Confirmar WhatsApp do Barbeiro:"}
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-505">
-                      <LucideIcon name="Phone" size={14} />
+                {loggedBarberId && (
+                  <div>
+                    <label htmlFor="modal-whatsapp-phone" className={`block text-xs font-semibold mb-1.5 ${isLightTheme ? 'text-slate-600' : 'text-slate-300'}`}>
+                      Confirmar WhatsApp do Cliente:
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-505">
+                        <LucideIcon name="Phone" size={14} />
+                      </div>
+                      <input
+                        type="tel"
+                        id="modal-whatsapp-phone"
+                        placeholder="Ex: (11) 99999-9999"
+                        value={tempWhatsappPhone}
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/\D/g, '');
+                          if (value.length > 11) value = value.slice(0, 11);
+                          if (value.length > 6) {
+                            value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7)}`;
+                          } else if (value.length > 2) {
+                            value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+                          } else if (value.length > 0) {
+                            value = `(${value}`;
+                          }
+                          setTempWhatsappPhone(value);
+                        }}
+                        className={`block w-full pl-9 pr-3 py-2.5 border focus:border-emerald-500 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs font-mono transition-all ${
+                          isLightTheme ? 'bg-white border-slate-200 text-slate-900 placeholder-slate-400' : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500'
+                        }`}
+                      />
                     </div>
-                    <input
-                      type="tel"
-                      id="modal-whatsapp-phone"
-                      placeholder="Ex: (11) 99999-9999"
-                      value={tempWhatsappPhone}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/\D/g, '');
-                        if (value.length > 11) value = value.slice(0, 11);
-                        if (value.length > 6) {
-                          value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7)}`;
-                        } else if (value.length > 2) {
-                          value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-                        } else if (value.length > 0) {
-                          value = `(${value}`;
-                        }
-                        setTempWhatsappPhone(value);
-                      }}
-                      className={`block w-full pl-9 pr-3 py-2.5 border focus:border-emerald-500 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs font-mono transition-all ${
-                        isLightTheme ? 'bg-white border-slate-200 text-slate-900 placeholder-slate-400' : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500'
-                      }`}
-                    />
                   </div>
-                </div>
+                )}
 
                 <div className="flex flex-col gap-2 pt-1">
                   <button
