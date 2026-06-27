@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { BarberService, WorkingConfig, Appointment, NotificationItem, Barber } from './types';
+import { BarberService, WorkingConfig, Appointment, NotificationItem, Barber, BlockedSlot } from './types';
 import { DEFAULT_SERVICES, DEFAULT_CONFIG, INITIAL_APPOINTMENTS, DEFAULT_BARBERS } from './data';
 import { auth, db, isFirebaseConfigured } from './firebase';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
@@ -182,6 +182,16 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('barber_shop_name', shopName);
   }, [shopName]);
+
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>(() => {
+    const saved = localStorage.getItem('barber_blocked_slots');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Sync blockedSlots to localStorage
+  useEffect(() => {
+    localStorage.setItem('barber_blocked_slots', JSON.stringify(blockedSlots));
+  }, [blockedSlots]);
 
   // Sync barbers of state to localStorage
   useEffect(() => {
@@ -391,11 +401,26 @@ export default function App() {
       }
     });
 
+    // Real-time synchronization for BlockedSlots
+    const unsubBlockedSlots = onSnapshot(collection(db, 'blockedSlots'), (snapshot) => {
+      const fbBlocked: BlockedSlot[] = [];
+      snapshot.forEach((doc) => {
+        fbBlocked.push({ id: doc.id, ...doc.data() } as BlockedSlot);
+      });
+      setBlockedSlots(fbBlocked);
+    }, (error) => {
+      console.error('BlockedSlots listener error:', error);
+      if (error.code === 'permission-denied') {
+        setFirebasePermissionError(true);
+      }
+    });
+
     return () => {
       unsubBarbers();
       unsubAppointments();
       unsubServices();
       unsubConfig();
+      unsubBlockedSlots();
     };
   }, [isFirebaseConfigured]);
 
@@ -418,6 +443,29 @@ export default function App() {
           console.error("Firestore write config error:", err);
           if (err.code === 'permission-denied') setFirebasePermissionError(true);
         });
+    }
+  };
+
+  const handleUpdateBlockedSlots = (updatedBlocked: BlockedSlot[]) => {
+    setBlockedSlots(updatedBlocked);
+    if (isFirebaseConfigured && db) {
+      updatedBlocked.forEach((slot) => {
+        setDoc(doc(db!, 'blockedSlots', slot.id), slot)
+          .catch((err) => {
+            console.error("Firestore write blocked slot error:", err);
+            if (err.code === 'permission-denied') setFirebasePermissionError(true);
+          });
+      });
+      // Delete removed blocked slots
+      blockedSlots.forEach((s) => {
+        if (!updatedBlocked.some((ub) => ub.id === s.id)) {
+          deleteDoc(doc(db!, 'blockedSlots', s.id))
+            .catch((err) => {
+              console.error("Firestore delete blocked slot error:", err);
+              if (err.code === 'permission-denied') setFirebasePermissionError(true);
+            });
+        }
+      });
     }
   };
 
@@ -1083,6 +1131,7 @@ service cloud.firestore {
                 showToast={showToast}
                 isLightTheme={isLightTheme}
                 barbers={barbers}
+                blockedSlots={blockedSlots}
               />
             </motion.div>
           )}
@@ -1152,6 +1201,8 @@ service cloud.firestore {
                 loggedBarberId={loggedBarberId || undefined}
                 shopName={shopName}
                 onUpdateShopName={handleUpdateShopName}
+                blockedSlots={blockedSlots}
+                onUpdateBlockedSlots={handleUpdateBlockedSlots}
               />
             </motion.div>
           )}

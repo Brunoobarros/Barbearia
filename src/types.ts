@@ -51,3 +51,10 @@ export interface WorkingConfig {
   intervalMinutes: number; // 30, 45, 60
   workingDays: number[]; // [1, 2, 3, 4, 5, 6] (0 = Sunday, 1 = Monday ...)
 }
+
+export interface BlockedSlot {
+  id: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:MM
+  barberId: string; // ID of the barber
+}

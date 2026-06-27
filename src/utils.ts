@@ -1,4 +1,4 @@
-import { Appointment, BarberService, WorkingConfig } from './types';
+import { Appointment, BarberService, WorkingConfig, BlockedSlot } from './types';
 
 // Convert "HH:MM" format to minutes since midnight
 export function timeToMinutes(timeStr: string): number {
@@ -43,7 +43,8 @@ export function getAvailableSlots(
   appointments: Appointment[],
   services: BarberService[],
   selectedBarberId?: string,
-  barbersList?: any[]
+  barbersList?: any[],
+  blockedSlots: BlockedSlot[] = []
 ): { time: string; available: boolean; reason?: string; suggestedBarberId?: string }[] {
   // 1. Check if it's a working day
   const [year, month, day] = dateStr.split('-').map(Number);
@@ -109,10 +110,17 @@ export function getAvailableSlots(
         return min >= start && min < (start + duration);
       });
 
+      // Check if this specific barber is blocked for this slot
+      const isBlocked = blockedSlots.some(
+        (slot) => slot.date === dateStr && slot.time === timeStr && slot.barberId === selectedBarberId
+      );
+
+      const isAvailable = !isBooked && !isBlocked;
+
       slots.push({
         time: timeStr,
-        available: !isBooked,
-        reason: isBooked ? 'Barbeiro ocupado' : undefined,
+        available: isAvailable,
+        reason: isBooked ? 'Barbeiro ocupado' : isBlocked ? 'Horário bloqueado' : undefined,
         suggestedBarberId: selectedBarberId,
       });
     } else {
@@ -126,7 +134,12 @@ export function getAvailableSlots(
           const duration = service ? service.duration : 30;
           return min >= start && min < (start + duration);
         });
-        return !isBooked;
+
+        const isBlocked = blockedSlots.some(
+          (slot) => slot.date === dateStr && slot.time === timeStr && slot.barberId === barber.id
+        );
+
+        return !isBooked && !isBlocked;
       });
 
       const isAvailable = freeBarbers.length > 0;

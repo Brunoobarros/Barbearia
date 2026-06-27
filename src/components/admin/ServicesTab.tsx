@@ -557,14 +557,14 @@ export default function ServicesTab({
             }`}>
               <div className="flex gap-3.5 items-start min-w-0">
                 {srv.image ? (
-                  <div className="w-[38px] h-[38px] rounded-xl shrink-0 mt-0.5 overflow-hidden border border-slate-800/40">
+                  <div className="w-[80px] h-[80px] rounded-2xl shrink-0 overflow-hidden border border-slate-800/40 self-center">
                     <img src={srv.image} alt={srv.name} className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className={`p-2.5 border rounded-xl text-amber-500 mt-0.5 w-[38px] h-[38px] flex items-center justify-center shrink-0 ${
+                  <div className={`p-2.5 border rounded-xl text-amber-500 w-[80px] h-[80px] flex items-center justify-center shrink-0 self-center ${
                     isLightTheme ? 'bg-slate-50 border-slate-200' : 'bg-slate-800 border-slate-700'
                   }`}>
-                    <LucideIcon name={srv.icon} size={16} />
+                    <LucideIcon name={srv.icon} size={32} />
                   </div>
                 )}
                 <div className="min-w-0">

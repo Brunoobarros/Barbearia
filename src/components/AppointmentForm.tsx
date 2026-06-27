@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarberService, Appointment, WorkingConfig, Barber } from '../types';
+import { BarberService, Appointment, WorkingConfig, Barber, BlockedSlot } from '../types';
 import { getAvailableSlots, getNextSevenDays, formatPortugueseDate } from '../utils';
 import LucideIcon from './LucideIcon';
 import { motion, AnimatePresence } from 'motion/react';
@@ -22,6 +22,7 @@ interface AppointmentFormProps {
   showToast: (title: string, message: string, type: 'success' | 'alert' | 'info' | 'reminder') => void;
   isLightTheme?: boolean;
   barbers: Barber[];
+  blockedSlots?: BlockedSlot[];
 }
 
 export default function AppointmentForm({
@@ -33,7 +34,8 @@ export default function AppointmentForm({
   setActiveDate,
   showToast,
   isLightTheme = false,
-  barbers = []
+  barbers = [],
+  blockedSlots = []
 }: AppointmentFormProps) {
   const [selectedServiceId, setSelectedServiceId] = useState<string>(services[0]?.id || '');
   const [selectedBarberId, setSelectedBarberId] = useState<string>('any');
@@ -58,20 +60,20 @@ export default function AppointmentForm({
   }, []);
 
   const activeService = services.find(s => s.id === selectedServiceId);
-  const slots = getAvailableSlots(activeDate, workingConfig, appointments, services, selectedBarberId, barbers);
+  const slots = getAvailableSlots(activeDate, workingConfig, appointments, services, selectedBarberId, barbers, blockedSlots);
 
   // Auto pre-select the first available slot when date, service, or appointments change
   useEffect(() => {
-    const availableSlots = getAvailableSlots(activeDate, workingConfig, appointments, services, selectedBarberId, barbers);
+    const availableSlots = getAvailableSlots(activeDate, workingConfig, appointments, services, selectedBarberId, barbers, blockedSlots);
     const firstSlot = availableSlots.find((s) => s.available);
     setSelectedTime(firstSlot ? firstSlot.time : '');
-  }, [activeDate, selectedServiceId, selectedBarberId, appointments, workingConfig, services, barbers]);
+  }, [activeDate, selectedServiceId, selectedBarberId, appointments, workingConfig, services, barbers, blockedSlots]);
 
   // Se o dia atualmente selecionado não tiver horários disponíveis, seleciona automaticamente o próximo dia que tiver vaga
   useEffect(() => {
     if (currentStep !== 2) return;
 
-    const currentSlots = getAvailableSlots(activeDate, workingConfig, appointments, services, selectedBarberId, barbers);
+    const currentSlots = getAvailableSlots(activeDate, workingConfig, appointments, services, selectedBarberId, barbers, blockedSlots);
     const hasAvailable = currentSlots.some((s) => s.available);
 
     if (!hasAvailable) {
@@ -80,7 +82,7 @@ export default function AppointmentForm({
         // Tenta os dias seguintes primeiro
         for (let i = currentIndex + 1; i < dateOptions.length; i++) {
           const nextDay = dateOptions[i];
-          const nextSlots = getAvailableSlots(nextDay, workingConfig, appointments, services, selectedBarberId, barbers);
+          const nextSlots = getAvailableSlots(nextDay, workingConfig, appointments, services, selectedBarberId, barbers, blockedSlots);
           if (nextSlots.some((s) => s.available)) {
             setActiveDate(nextDay);
             return;
@@ -89,7 +91,7 @@ export default function AppointmentForm({
         // Se nenhum dia posterior tiver, tenta os dias anteriores a partir do início do período de 7 dias
         for (let i = 0; i < currentIndex; i++) {
           const prevDay = dateOptions[i];
-          const prevSlots = getAvailableSlots(prevDay, workingConfig, appointments, services, selectedBarberId, barbers);
+          const prevSlots = getAvailableSlots(prevDay, workingConfig, appointments, services, selectedBarberId, barbers, blockedSlots);
           if (prevSlots.some((s) => s.available)) {
             setActiveDate(prevDay);
             return;
@@ -97,7 +99,7 @@ export default function AppointmentForm({
         }
       }
     }
-  }, [activeDate, currentStep, selectedServiceId, selectedBarberId, appointments, workingConfig, services, barbers, dateOptions, setActiveDate]);
+  }, [activeDate, currentStep, selectedServiceId, selectedBarberId, appointments, workingConfig, services, barbers, dateOptions, setActiveDate, blockedSlots]);
 
   // Auto scroll selected or pre-selected time slot into view when step 2 displays or selected time changes
   useEffect(() => {
@@ -251,31 +253,34 @@ export default function AppointmentForm({
                   }`}
                 >
                   {service.image ? (
-                    <div className="w-[38px] h-[38px] rounded-xl shrink-0 mt-0.5 overflow-hidden border border-slate-800/40">
+                    <div className="w-[80px] h-[80px] rounded-2xl shrink-0 overflow-hidden border border-slate-800/40 self-center">
                       <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 w-[38px] h-[38px] flex items-center justify-center ${
+                    <div className={`p-2.5 rounded-2xl shrink-0 w-[80px] h-[80px] flex items-center justify-center self-center ${
                       selectedServiceId === service.id ? 'bg-amber-500 text-slate-950 font-extrabold' : 'bg-slate-850 text-amber-500'
                     }`}>
-                      <LucideIcon name={service.icon} size={18} />
+                      <LucideIcon name={service.icon} size={32} />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-2 mb-1">
-                      <h4 className={`font-display font-medium text-base truncate pr-2 ${isLightTheme ? 'text-slate-900 font-bold' : 'text-white'}`}>
+                      <h4 className={`font-display font-medium text-base truncate pr-6 ${isLightTheme ? 'text-slate-900 font-bold' : 'text-white'}`}>
                         {service.name}
                       </h4>
-                      <span className="text-amber-500 font-mono font-bold text-base shrink-0">
-                        R$ {service.price.toFixed(2)}
-                      </span>
                     </div>
                     <p className={`text-xs leading-relaxed mb-2 line-clamp-2 ${isLightTheme ? 'text-slate-650' : 'text-slate-400'}`}>
                       {service.description}
                     </p>
-                    <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 uppercase font-bold">
-                      <LucideIcon name="Clock" size={12} className="text-slate-500" />
-                      <span>{service.duration} MINUTOS</span>
+                    <div className="flex items-center gap-2.5 text-[10px] font-mono uppercase font-bold">
+                      <div className="flex items-center gap-1 text-slate-500">
+                        <LucideIcon name="Clock" size={12} className="text-slate-500" />
+                        <span>{service.duration} MINUTOS</span>
+                      </div>
+                      <span className="text-slate-600 font-normal text-xs">•</span>
+                      <span className="text-amber-500 font-mono text-sm font-black">
+                        R$ {service.price.toFixed(2)}
+                      </span>
                     </div>
                   </div>
                   {selectedServiceId === service.id && (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarberService, WorkingConfig, Appointment, Barber } from '../types';
+import { BarberService, WorkingConfig, Appointment, Barber, BlockedSlot } from '../types';
 import LucideIcon from './LucideIcon';
 import StatsTab from './admin/StatsTab';
 import ServicesTab from './admin/ServicesTab';
@@ -19,6 +19,8 @@ interface AdminPanelProps {
   loggedBarberId?: string;
   shopName?: string;
   onUpdateShopName?: (name: string) => void;
+  blockedSlots: BlockedSlot[];
+  onUpdateBlockedSlots: (updated: BlockedSlot[]) => void;
 }
 
 export default function AdminPanel({
@@ -34,6 +36,8 @@ export default function AdminPanel({
   loggedBarberId,
   shopName = 'Barbearia Premium',
   onUpdateShopName,
+  blockedSlots = [],
+  onUpdateBlockedSlots,
 }: AdminPanelProps) {
   // Navigation tabs inside Admin
   const [adminTab, setAdminTab] = useState<'stats' | 'services' | 'hours' | 'barbers'>('stats');
@@ -132,6 +136,10 @@ export default function AdminPanel({
           onUpdateShopName={onUpdateShopName}
           showToast={showToast}
           isLightTheme={isLightTheme}
+          barbers={barbers}
+          loggedBarberId={loggedBarberId}
+          blockedSlots={blockedSlots}
+          onUpdateBlockedSlots={onUpdateBlockedSlots}
         />
       )}
 
