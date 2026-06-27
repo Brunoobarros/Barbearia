@@ -1076,7 +1076,7 @@ export default function App() {
                 <span>REGRAS DO FIRESTORE RECOMENDADAS:</span>
                 <button
                   onClick={() => {
-                    const rulesText = `rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /barbers/{document} {\n      allow read: if true;\n      allow write: if request.auth != null;\n    }\n    match /services/{document} {\n      allow read: if true;\n      allow write: if request.auth != null;\n    }\n    match /configs/{document} {\n      allow read: if true;\n      allow write: if request.auth != null;\n    }\n    match /appointments/{document} {\n      allow read, write: if true;\n    }\n  }\n}`;
+                    const rulesText = `rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /barbers/{document} {\n      allow read, write: if true;\n    }\n    match /services/{document} {\n      allow read, write: if true;\n    }\n    match /configs/{document} {\n      allow read, write: if true;\n    }\n    match /appointments/{document} {\n      allow read, write: if true;\n    }\n    match /blockedSlots/{document} {\n      allow read, write: if true;\n    }\n  }\n}`;
                     navigator.clipboard.writeText(rulesText);
                     showToast('Copiado!', 'Regras de segurança copiadas para a área de transferência.', 'success');
                   }}
@@ -1089,18 +1089,18 @@ export default function App() {
 service cloud.firestore {
   match /databases/{database}/documents {
     match /barbers/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
     match /services/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
     match /configs/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
     match /appointments/{document} {
+      allow read, write: if true;
+    }
+    match /blockedSlots/{document} {
       allow read, write: if true;
     }
   }
