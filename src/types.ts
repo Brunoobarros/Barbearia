@@ -5,6 +5,7 @@ export interface BarberService {
   price: number; // in Brazilian Reais (R$)
   description: string;
   icon: string; // lucide icon name
+  image?: string; // Base64 or URL string
 }
 
 export interface DaySchedule {

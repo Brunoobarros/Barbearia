@@ -250,11 +250,17 @@ export default function AppointmentForm({
                       : 'border-slate-800/80 hover:border-slate-700/80 bg-slate-950/20 text-slate-300'
                   }`}
                 >
-                  <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${
-                    selectedServiceId === service.id ? 'bg-amber-500 text-slate-950 font-extrabold' : 'bg-slate-850 text-amber-500'
-                  }`}>
-                    <LucideIcon name={service.icon} size={18} />
-                  </div>
+                  {service.image ? (
+                    <div className="w-[38px] h-[38px] rounded-xl shrink-0 mt-0.5 overflow-hidden border border-slate-800/40">
+                      <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 w-[38px] h-[38px] flex items-center justify-center ${
+                      selectedServiceId === service.id ? 'bg-amber-500 text-slate-950 font-extrabold' : 'bg-slate-850 text-amber-500'
+                    }`}>
+                      <LucideIcon name={service.icon} size={18} />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-2 mb-1">
                       <h4 className={`font-display font-medium text-base truncate pr-2 ${isLightTheme ? 'text-slate-900 font-bold' : 'text-white'}`}>
